@@ -99,6 +99,12 @@ class Settings(BaseSettings):
     # Dramatically reduces idle context token usage for LLMs.
     enable_tool_search: bool = Field(False, alias="ENABLE_TOOL_SEARCH")
 
+    # Message sanitization — redact sensitive data (tokens, emails, IPs, etc.)
+    # from tool results before they reach the AI, and restore placeholders in
+    # AI-provided content before it is written to files or HA configs.
+    # Set HAMCP_ENABLE_SANITIZATION=false to disable (not recommended).
+    enable_sanitization: bool = Field(True, alias="HAMCP_ENABLE_SANITIZATION")
+
     @model_validator(mode="after")
     def _skills_dependency(self) -> "Settings":
         """Auto-enable skills (resources) when skills-as-tools is on.
