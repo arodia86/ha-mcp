@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ha-mcp-sanitize"
+version = "1.0.0"
+description = "Privacy add-on for ha-mcp — automatic message sanitization"
+requires-python = ">=3.13"
+dependencies = [
+    "ha-mcp>=7.0.0",
+]
+
+[project.scripts]
+# Use these commands in your AI client config instead of ha-mcp / ha-mcp-web
+ha-mcp-sanitize     = "ha_mcp_sanitize.entry:main"
+ha-mcp-sanitize-web = "ha_mcp_sanitize.entry:main_web"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ha_mcp_sanitize"]

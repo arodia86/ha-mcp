@@ -10,8 +10,6 @@ import logging
 import time
 from typing import Any, Literal, NoReturn, overload
 
-from ..sanitizer import get_sanitizer, is_sanitization_enabled
-
 from fastmcp.exceptions import ToolError
 
 from ..client.rest_client import (
@@ -226,16 +224,8 @@ def exception_to_structured_error(
 
 def log_tool_usage(func: Any) -> Any:
     """
-    Decorator to automatically log MCP tool usage and apply message sanitization.
+    Decorator to automatically log MCP tool usage.
 
-    On every tool call:
-    - INBOUND  (AI → HA): restores any sanitization placeholders in kwargs so
-      that HA / file-write operations receive the real values.
-    - OUTBOUND (HA → AI): sanitizes the tool result before it is returned to
-      the AI, replacing sensitive data (tokens, emails, IPs, …) with stable
-      named placeholders.
-
-    Sanitization is controlled by the HAMCP_ENABLE_SANITIZATION env var (default: true).
     Tracks execution time, success/failure, and response size for all tool calls.
     """
 
@@ -247,20 +237,8 @@ def log_tool_usage(func: Any) -> Any:
         error_message = None
         response_size = None
 
-        sanitize = is_sanitization_enabled()
-
-        # INBOUND: restore any placeholders that the AI echoed back in parameters
-        if sanitize and kwargs:
-            sanitizer = get_sanitizer()
-            kwargs = sanitizer.restore(kwargs)
-
         try:
             result = await func(*args, **kwargs)
-
-            # OUTBOUND: redact sensitive data before the result reaches the AI
-            if sanitize:
-                result = get_sanitizer().sanitize(result)
-
             if isinstance(result, str):
                 response_size = len(result.encode("utf-8"))
             elif hasattr(result, "__len__"):
